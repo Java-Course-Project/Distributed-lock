@@ -7,18 +7,23 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+import java.util.concurrent.TimeoutException;
+
 @Aspect
 @Component
 @RequiredArgsConstructor
 public class LockingAspect {
     private final DistributedLockService lockService;
 
-    @SuppressWarnings("BusyWait")
     @Around("@annotation(com.duyvu.distributed.lock.annotation.DistributedLock)")
     public Object handleDistributedLock(ProceedingJoinPoint pjp) throws Throwable {
         // TODO: fix busy-waiting by implement pub/sub for await
-        while (!lockService.tryAcquire()) {
-            Thread.sleep(500);
+        Duration timeout = Duration.ofSeconds(2);
+        boolean isAcquired = lockService.acquire(timeout);
+
+        if (!isAcquired) {
+            throw new TimeoutException("Cannot acquire lock in time " + timeout);
         }
 
         try {
