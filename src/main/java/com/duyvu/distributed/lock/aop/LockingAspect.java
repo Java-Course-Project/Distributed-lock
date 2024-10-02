@@ -18,7 +18,6 @@ public class LockingAspect {
 
     @Around("@annotation(com.duyvu.distributed.lock.annotation.DistributedLock)")
     public Object handleDistributedLock(ProceedingJoinPoint pjp) throws Throwable {
-        // TODO: fix busy-waiting by implement pub/sub for await
         Duration timeout = Duration.ofSeconds(2);
         boolean isAcquired = lockService.acquire(timeout);
 
