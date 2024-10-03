@@ -41,7 +41,11 @@ public class DistributedLockService implements MessageListener {
         boolean acquired = Boolean.TRUE.equals(redisTemplate.opsForValue().setIfAbsent(LOCK_KEY, LOCK_VALUE, EXPIRED_TIME));
         if (acquired && renewLockExpireTimeTask == null) {
             renewLockExpireTimeTask = Executors.newScheduledThreadPool(1).scheduleWithFixedDelay(
-                    () -> redisTemplate.opsForValue().getAndExpire(LOCK_KEY, EXPIRED_TIME), RENEW_TIME.toSeconds(), RENEW_TIME.toSeconds(),
+                    () -> {
+                        if (Objects.equals(redisTemplate.opsForValue().get(LOCK_KEY), LOCK_VALUE)) {
+                            redisTemplate.opsForValue().getAndExpire(LOCK_KEY, EXPIRED_TIME);
+                        }
+                    }, RENEW_TIME.toSeconds(), RENEW_TIME.toSeconds(),
                     TimeUnit.SECONDS);
         }
         return acquired;
