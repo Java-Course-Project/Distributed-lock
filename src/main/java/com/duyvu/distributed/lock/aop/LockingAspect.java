@@ -1,5 +1,6 @@
 package com.duyvu.distributed.lock.aop;
 
+import com.duyvu.distributed.lock.annotation.DistributedLock;
 import com.duyvu.distributed.lock.service.DistributedLockService;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -16,13 +17,12 @@ import java.util.concurrent.TimeoutException;
 public class LockingAspect {
     private final DistributedLockService lockService;
 
-    @Around("@annotation(com.duyvu.distributed.lock.annotation.DistributedLock)")
-    public Object handleDistributedLock(ProceedingJoinPoint pjp) throws Throwable {
-        Duration timeout = Duration.ofSeconds(2);
-        boolean isAcquired = lockService.acquire(timeout);
+    @Around("@annotation(distributedLock)")
+    public Object handleDistributedLock(ProceedingJoinPoint pjp, DistributedLock distributedLock) throws Throwable {
+        boolean isAcquired = lockService.acquire(Duration.ofSeconds(distributedLock.timeout()));
 
         if (!isAcquired) {
-            throw new TimeoutException("Cannot acquire lock in time " + timeout);
+            throw new TimeoutException("Cannot acquire lock in time " + Duration.ofSeconds(distributedLock.timeout()));
         }
 
         try {

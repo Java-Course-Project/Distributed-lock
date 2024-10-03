@@ -51,9 +51,13 @@ public class DistributedLockService implements MessageListener {
         lock.lock();
         try {
             while (!tryAcquire()) {
-                boolean timeoutExpired = condition.await(timeout.toSeconds(), TimeUnit.SECONDS);
-                if (!timeoutExpired) {
-                    return false;
+                if (timeout.isNegative()) {
+                    boolean timeoutExpired = condition.await(timeout.toSeconds(), TimeUnit.SECONDS);
+                    if (!timeoutExpired) {
+                        return false;
+                    }
+                } else {
+                    condition.await();
                 }
             }
             return true;

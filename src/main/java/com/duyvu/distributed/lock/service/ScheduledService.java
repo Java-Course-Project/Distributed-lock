@@ -22,7 +22,7 @@ public class ScheduledService {
     }
 
     @Scheduled(cron = "0/5 * * * * ?")
-    @DistributedLock
+    @DistributedLock(timeout = 2)
     public void run() {
         Instant roundedTime = TimeUtil.getCurrentTimeRoundToNearest5Second();
         boolean wasTaskRun = Boolean.TRUE.equals(redisTemplate.opsForValue().get(roundedTime.toEpochMilli()));

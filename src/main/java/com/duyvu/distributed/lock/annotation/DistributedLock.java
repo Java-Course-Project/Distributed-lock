@@ -11,4 +11,5 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target(METHOD)
 @Documented
 public @interface DistributedLock {
+    long timeout() default -1;
 }
